@@ -88,7 +88,7 @@ class Client:
 
     def check(self, api_key):
         validation_url = f"{self.host}/api/v1/accounts/api_keys/validate/"
-        response = requests.post(validation_url, headers={"Authorization": f"Token {api_key}"})
+        response = requests.post(validation_url, headers={"Authorization": f"Token {api_key}"}, timeout=10)
         if response.status_code == 200:
             return True
         else:
@@ -101,3 +101,4 @@ class Client:
 
     def __str__(self):
         return self.api_key
+
