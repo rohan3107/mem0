@@ -186,17 +186,18 @@ class App(EmbedChain):
         """
         Get existing pipeline
         """
-        print("🛠️ Fetching pipeline details from the platform...")
+        print("üõ†Ô∏è Fetching pipeline details from the platform...")
         url = f"{self.client.host}/api/v1/pipelines/{id}/cli/"
         r = requests.get(
             url,
             headers={"Authorization": f"Token {self.client.api_key}"},
+            timeout=10
         )
         if r.status_code == 404:
-            raise Exception(f"❌ Pipeline with id {id} not found!")
-
+            raise Exception(f"‚ùå Pipeline with id {id} not found!")
+    
         print(
-            f"🎉 Pipeline loaded successfully! Pipeline url: https://app.embedchain.ai/pipelines/{r.json()['id']}\n"  # noqa: E501
+            f"üéâ Pipeline loaded successfully! Pipeline url: https://app.embedchain.ai/pipelines/{r.json()['id']}\n"  # noqa: E501
         )
         return r.json()
 
@@ -204,7 +205,7 @@ class App(EmbedChain):
         """
         Create a pipeline on the platform.
         """
-        print("🛠️ Creating pipeline on the platform...")
+        print("üõ†Ô∏è Creating pipeline on the platform...")
         # self.config_data is a dict. Pass it inside the key 'yaml_config' to the backend
         payload = {
             "yaml_config": json.dumps(self.config_data),
@@ -216,17 +217,18 @@ class App(EmbedChain):
             url,
             json=payload,
             headers={"Authorization": f"Token {self.client.api_key}"},
+            timeout=10
         )
         if r.status_code not in [200, 201]:
-            raise Exception(f"❌ Error occurred while creating pipeline. API response: {r.text}")
+            raise Exception(f"‚ùå Error occurred while creating pipeline. API response: {r.text}")
 
         if r.status_code == 200:
             print(
-                f"🎉🎉🎉 Existing pipeline found! View your pipeline: https://app.embedchain.ai/pipelines/{r.json()['id']}\n"  # noqa: E501
+                f"üéâüéâüéâ Existing pipeline found! View your pipeline: https://app.embedchain.ai/pipelines/{r.json()['id']}\n"  # noqa: E501
             )  # noqa: E501
         elif r.status_code == 201:
             print(
-                f"🎉🎉🎉 Pipeline created successfully! View your pipeline: https://app.embedchain.ai/pipelines/{r.json()['id']}\n"  # noqa: E501
+                f"üéâüéâüéâ Pipeline created successfully! View your pipeline: https://app.embedchain.ai/pipelines/{r.json()['id']}\n"  # noqa: E501
             )
         return r.json()
 
@@ -236,6 +238,7 @@ class App(EmbedChain):
             f"{self.client.host}/api/v1/pipelines/{self.id}/cli/presigned_url/",
             json=payload,
             headers={"Authorization": f"Token {self.client.api_key}"},
+            timeout=10
         )
         r.raise_for_status()
         return r.json()
@@ -243,12 +246,12 @@ class App(EmbedChain):
     def _upload_file_to_presigned_url(self, presigned_url, file_path):
         try:
             with open(file_path, "rb") as file:
-                response = requests.put(presigned_url, data=file)
+                response = requests.put(presigned_url, data=file, timeout=10)
                 response.raise_for_status()
                 return response.status_code == 200
         except Exception as e:
             logger.exception(f"Error occurred during file upload: {str(e)}")
-            print("❌ Error occurred during file upload!")
+            print("‚ùå Error occurred during file upload!")
             return False
 
     def _upload_data_to_pipeline(self, data_type, data_value, metadata=None):
@@ -268,7 +271,7 @@ class App(EmbedChain):
     def _send_api_request(self, endpoint, payload):
         url = f"{self.client.host}{endpoint}"
         headers = {"Authorization": f"Token {self.client.api_key}"}
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
         return response
 
