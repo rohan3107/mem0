@@ -43,7 +43,13 @@ class Mem0Teachability(AgentCapability):
 
         if self.llm_config is None:
             self.llm_config = agent.llm_config
-        assert self.llm_config, "Teachability requires a valid llm_config."
+        try:
+            if not self.llm_config:
+                raise ValueError("Teachability requires a valid llm_config.")
+        except ValueError as e:
+            # Handle error
+            # Optionally log the error or perform recovery actions
+            return
 
         self.analyzer = TextAnalyzerAgent(llm_config=self.llm_config)
 
