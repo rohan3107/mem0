@@ -62,7 +62,7 @@ def cli():
 def create_app(ctx, app_name, docker):
     if Path(app_name).exists():
         console.print(
-            f"❌ [red]Directory '{app_name}' already exists. Try using a new directory name, or remove it.[/red]"
+            f"‚ùå [red]Directory '{app_name}' already exists. Try using a new directory name, or remove it.[/red]"
         )
         return
 
@@ -73,14 +73,14 @@ def create_app(ctx, app_name, docker):
     zip_url = "http://github.com/embedchain/ec-admin/archive/main.zip"
     console.print(f"Creating a new embedchain app in [green]{Path().resolve()}[/green]\n")
     try:
-        response = requests.get(zip_url)
+        response = requests.get(zip_url, timeout=10)
         response.raise_for_status()
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             tmp_file.write(response.content)
             zip_file_path = tmp_file.name
-        console.print("✅ [bold green]Fetched template successfully.[/bold green]")
+        console.print("‚úÖ [bold green]Fetched template successfully.[/bold green]")
     except requests.RequestException as e:
-        console.print(f"❌ [bold red]Failed to download zip file: {e}[/bold red]")
+        console.print(f"‚ùå [bold red]Failed to download zip file: {e}[/bold red]")
         anonymous_telemetry.capture(event_name="ec_create_app", properties={"success": False})
         return
 
@@ -100,10 +100,10 @@ def create_app(ctx, app_name, docker):
                     with open(target_file, "wb") as file:
                         # Write the file
                         shutil.copyfileobj(source_file, file)
-            console.print("✅ [bold green]Extracted zip file successfully.[/bold green]")
+            console.print("‚úÖ [bold green]Extracted zip file successfully.[/bold green]")
             anonymous_telemetry.capture(event_name="ec_create_app", properties={"success": True})
     except zipfile.BadZipFile:
-        console.print("❌ [bold red]Error in extracting zip file. The file might be corrupted.[/bold red]")
+        console.print("‚ùå [bold red]Error in extracting zip file. The file might be corrupted.[/bold red]")
         anonymous_telemetry.capture(event_name="ec_create_app", properties={"success": False})
         return
 
@@ -140,8 +140,17 @@ def install_reqs():
 @cli.command()
 @click.option("--docker", is_flag=True, help="Run inside docker.")
 def start(docker):
+    def validate_command(command):
+        # Simple validation mechanism, can be expanded based on requirements
+        if not isinstance(command, list):
+            raise ValueError("Command must be a list of arguments")
+        if any(not isinstance(arg, str) for arg in command):
+            raise ValueError("Each command argument must be a string")
+
     if docker:
-        subprocess.run(["docker-compose", "up"], check=True)
+        command = ["docker-compose", "up"]
+        validate_command(command)
+        subprocess.run(command, check=True)
         return
 
     # Set up signal handling
@@ -151,11 +160,13 @@ def start(docker):
     # Step 1: Start the API server
     try:
         os.chdir("api")
-        api_process = subprocess.Popen(["python", "-m", "main"], stdout=None, stderr=None)
+        command = ["python", "-m", "main"]
+        validate_command(command)
+        api_process = subprocess.Popen(command, stdout=None, stderr=None)
         os.chdir("..")
-        console.print("✅ [bold green]API server started successfully.[/bold green]")
+        console.print("\u2714 [bold green]API server started successfully.[/bold green]")
     except Exception as e:
-        console.print(f"❌ [bold red]Failed to start the API server: {e}[/bold red]")
+        console.print(f"\u2716 [bold red]Failed to start the API server: {e}[/bold red]")
         anonymous_telemetry.capture(event_name="ec_start", properties={"success": False})
         return
 
@@ -165,12 +176,16 @@ def start(docker):
     # Step 2: Install UI requirements and start the UI server
     try:
         os.chdir("ui")
-        subprocess.run(["yarn"], check=True)
-        ui_process = subprocess.Popen(["yarn", "dev"])
-        console.print("✅ [bold green]UI server started successfully.[/bold green]")
+        command = ["yarn"]
+        validate_command(command)
+        subprocess.run(command, check=True)
+        command_dev = ["yarn", "dev"]
+        validate_command(command_dev)
+        ui_process = subprocess.Popen(command_dev)
+        console.print("\u2714 [bold green]UI server started successfully.[/bold green]")
         anonymous_telemetry.capture(event_name="ec_start", properties={"success": True})
     except Exception as e:
-        console.print(f"❌ [bold red]Failed to start the UI server: {e}[/bold red]")
+        console.print(f"\u2716 [bold red]Failed to start the UI server: {e}[/bold red]")
         anonymous_telemetry.capture(event_name="ec_start", properties={"success": False})
 
     # Keep the script running until it receives a kill signal
@@ -178,7 +193,7 @@ def start(docker):
         api_process.wait()
         ui_process.wait()
     except KeyboardInterrupt:
-        console.print("\n🛑 [bold yellow]Stopping server...[/bold yellow]")
+        console.print("\n\u2744 [bold yellow]Stopping server...[/bold yellow]")
 
 
 @cli.command()
