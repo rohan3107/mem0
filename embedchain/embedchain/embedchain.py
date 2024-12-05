@@ -184,7 +184,27 @@ class EmbedChain(JSONSerializable):
             data_type = detect_datatype(source)
 
         # `source_hash` is the md5 hash of the source argument
-        source_hash = hashlib.md5(str(source).encode("utf-8")).hexdigest()
+        from cryptography.hazmat.primitives.asymmetric import padding
+        from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives.kdf.argon2 import Argon2id
+        
+        # Example use of Argon2id for secure hashing
+        kdf = Argon2id(
+            memory_cost=65536,  # 64MB of RAM required
+            time_cost=6,  # iterated 3 times
+            parallelism=1,  # adjusted to suit single processor
+            length=32,  # produces 256 bits (32 bytes)
+            salt=os.urandom(16),  # use os.urandom to generate a secure random salt
+            backend=default_backend()
+        )
+        
+        def hash_password(password: str) -> bytes:
+            # Encode the password and produce a secure hash
+            return kdf.derive(password.encode('utf-8'))
+        
+        # Example usage with the password replacement
+        source_hash = hash_password(str(source))
 
         self.user_asks.append([source, data_type.value, metadata])
 
