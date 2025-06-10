@@ -1,3 +1,4 @@
 slack-sdk==3.21.3 
 flask==2.3.3
 fastapi-poe==0.0.16
+h11>=0.16.0 # not directly required, pinned by Snyk to avoid a vulnerability
